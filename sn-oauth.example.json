@@ -1,0 +1,6 @@
+{
+  "instance": "your-instance.service-now.com",
+  "client_id": "your_oauth_client_id",
+  "redirect_uri": "/sdk-oauth.do",
+  "scope": ""
+}

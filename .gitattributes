@@ -1,0 +1,6 @@
+# Keep shell scripts and Python LF so they run on macOS / Linux after checkout.
+* text=auto eol=lf
+
+# Windows-only scripts stay CRLF.
+*.cmd text eol=crlf
+*.ps1 text eol=crlf

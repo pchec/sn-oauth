@@ -1,0 +1,12 @@
+# local config (holds your instance + client id)
+sn-oauth.json
+
+# virtualenv
+.venv/
+
+# python
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/

@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sn-oauth"
+version = "0.1.0"
+description = "OAuth authorization-code (PKCE) login and OS-keychain token storage for ServiceNow instances."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+dependencies = ["keyring>=24"]
+
+[project.scripts]
+sn-oauth = "sn_oauth.cli:main"
+
+[tool.setuptools]
+packages = ["sn_oauth"]

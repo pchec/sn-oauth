@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Launcher for macOS / Linux. Bootstraps on first run, then runs sn-oauth.
+set -euo pipefail
+HERE="$(cd "$(dirname "$0")" && pwd)"
+if [ ! -x "$HERE/.venv/bin/sn-oauth" ]; then
+  "$HERE/bootstrap/install.sh"
+fi
+exec "$HERE/.venv/bin/sn-oauth" "$@"
