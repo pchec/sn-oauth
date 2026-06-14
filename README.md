@@ -197,6 +197,12 @@ not manage that yourself.
   python.org and re-run the launcher.
 - **Linux: no keychain backend.** Install and run a Secret Service provider
   (GNOME Keyring or KWallet); headless servers need extra setup for `keyring`.
+- **Windows / Git Bash.** The `./sn-oauth` launcher handles the Windows venv
+  layout (`.venv/Scripts/`) and disables MSYS path conversion automatically, so
+  a path-style `redirect_uri` like `/sdk-oauth.do` is not rewritten into a
+  Windows path. Run through the launcher (`./sn-oauth ...`); if you must call the
+  venv Python directly, set `MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*'`
+  yourself first.
 
 ---
 

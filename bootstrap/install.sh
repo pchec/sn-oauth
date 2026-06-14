@@ -34,8 +34,16 @@ fi
 
 echo "Using Python: $("$PY" --version 2>&1)"
 "$PY" -m venv .venv
-./.venv/bin/python -m pip install --upgrade pip >/dev/null
-./.venv/bin/python -m pip install -e .
+
+# A Windows venv puts the interpreter in Scripts/python.exe; a POSIX venv uses
+# bin/python. Use whichever this venv created.
+if [ -f ".venv/Scripts/python.exe" ]; then
+  VENV_PY=".venv/Scripts/python.exe"
+else
+  VENV_PY=".venv/bin/python"
+fi
+"$VENV_PY" -m pip install --upgrade pip >/dev/null
+"$VENV_PY" -m pip install -e .
 echo
 echo "Installed. Next:"
 echo "  1) cp sn-oauth.example.json sn-oauth.json   and fill in your instance + client_id"

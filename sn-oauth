@@ -1,8 +1,33 @@
 #!/usr/bin/env bash
-# Launcher for macOS / Linux. Bootstraps on first run, then runs sn-oauth.
+# Launcher for macOS / Linux / Git Bash on Windows.
+# Bootstraps on first run, then runs sn-oauth.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-if [ ! -x "$HERE/.venv/bin/sn-oauth" ]; then
-  "$HERE/bootstrap/install.sh"
+
+# A venv created by Windows Python puts its interpreter in Scripts/python.exe;
+# a POSIX venv uses bin/python. Detect which layout this venv has.
+if [ -f "$HERE/.venv/Scripts/python.exe" ]; then
+  PY="$HERE/.venv/Scripts/python.exe"
+  # Git Bash / MSYS rewrites POSIX-looking args and env values (for example the
+  # /sdk-oauth.do redirect_uri) into Windows paths before the native python sees
+  # them, which silently breaks the OAuth redirect. Turn that conversion off.
+  export MSYS_NO_PATHCONV=1
+  export MSYS2_ARG_CONV_EXCL='*'
+elif [ -f "$HERE/.venv/bin/python" ]; then
+  PY="$HERE/.venv/bin/python"
+else
+  PY=""
 fi
-exec "$HERE/.venv/bin/sn-oauth" "$@"
+
+if [ -z "$PY" ]; then
+  "$HERE/bootstrap/install.sh"
+  if [ -f "$HERE/.venv/Scripts/python.exe" ]; then
+    PY="$HERE/.venv/Scripts/python.exe"
+    export MSYS_NO_PATHCONV=1
+    export MSYS2_ARG_CONV_EXCL='*'
+  else
+    PY="$HERE/.venv/bin/python"
+  fi
+fi
+
+exec "$PY" -m sn_oauth "$@"
