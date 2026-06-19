@@ -78,7 +78,9 @@ def cmd_exchange(cfg, args):
 def cmd_login(cfg, args):
     _require(cfg, "instance", "client_id")
     url = _build_authorize_url(cfg)
-    _err("1) Open this URL and sign in to ServiceNow:\n")
+    _err("1) Copy this ENTIRE URL and paste it into your browser, then sign in.")
+    _err("   Copy the whole line; do not click it. A terminal can truncate a long")
+    _err("   link, and a truncated URL fails with 'unauthorized_client'.\n")
     print(url)
     _err("\n2) Approve access, then copy the code shown on the page.")
     try:

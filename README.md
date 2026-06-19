@@ -31,9 +31,11 @@ flow:
 3. **Install** by running the launcher once; it bootstraps Python if needed
    (see [3. Install](#3-install)).
 4. **Log in (human in the loop).** Run `sn-oauth authorize-url`, show the
-   printed URL to the user, and ask them to sign in and paste back the code the
-   page displays. Then run `sn-oauth exchange <code>`. The refresh token is now
-   in the keychain.
+   printed URL to the user, and tell them to **copy and paste the whole URL**
+   into their browser rather than clicking it (a terminal can truncate a long
+   link, and a truncated URL fails with `unauthorized_client`). Ask them to sign
+   in and paste back the code the page displays. Then run
+   `sn-oauth exchange <code>`. The refresh token is now in the keychain.
 5. **Use it.** Whenever you need to call ServiceNow, run `sn-oauth token` to get
    a valid access token (it refreshes silently) and send it as
    `Authorization: Bearer <token>`.
@@ -137,8 +139,9 @@ or `bootstrap/install.ps1` (Windows).
 sn-oauth login
 ```
 
-It prints a URL, you open it and sign in, you approve access, then you paste the
-code the page shows. Done.
+It prints a URL. Copy the whole URL and paste it into your browser (do not click
+it; a terminal can truncate a long link). Sign in, approve access, then paste
+back the code the page shows. Done.
 
 **Agent-driven (two steps):**
 
@@ -185,6 +188,13 @@ not manage that yourself.
 
 ## Troubleshooting
 
+- **`unauthorized_client` (the client credentials are not valid or not trusted).**
+  The `client_id` reaching ServiceNow is not one it recognises. The most common
+  cause is opening a **truncated** authorize URL: clicking a long link in a
+  terminal can clip it, so copy and paste the whole URL instead. Otherwise the
+  `client_id` in your config is wrong or carries a stray character. Confirm the
+  `client_id` in the URL `authorize-url` prints matches your registered client
+  exactly.
 - **`access_denied` at exchange.** Almost always the `redirect_uri` in your
   config does not match the OAuth client's Redirect URL, or the code was issued
   for a different `client_id`, or the code was already used or has expired.
