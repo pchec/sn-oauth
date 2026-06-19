@@ -60,4 +60,12 @@ def load_config(overrides=None):
     if overrides:
         cfg.update({k: v for k, v in overrides.items() if v})
 
+    # Strip surrounding whitespace, including non-breaking spaces, that a
+    # rich-text editor or a copy-paste can leave around a value. A stray space
+    # in client_id is invisible in the JSON but makes ServiceNow reject the
+    # request with "unauthorized_client" even though the value looks correct.
+    for key in KEYS:
+        if isinstance(cfg.get(key), str):
+            cfg[key] = cfg[key].strip()
+
     return cfg
