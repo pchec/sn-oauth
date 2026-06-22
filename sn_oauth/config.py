@@ -19,6 +19,34 @@ import os
 ENV_PREFIX = "SN_OAUTH_"
 KEYS = ("instance", "client_id", "redirect_uri", "scope")
 
+
+def canonical_instance(instance):
+    """Normalise an instance string to its canonical FQDN form.
+
+    A ServiceNow instance is addressable by a short name (``danonesandbox``)
+    or its full host (``danonesandbox.service-now.com``). The keychain store
+    keys tokens by the exact instance string, so the two forms used to land in
+    two *different* keychain entries: a token saved under the FQDN was invisible
+    to a probe done with the short name, which then read as "not logged in"
+    (the false-lapse footgun). Canonicalising to one form here, before the
+    instance is ever used as a store key or in a URL, closes that gap whichever
+    form the caller passed.
+
+    Rule: if the value has no dot, append ``.service-now.com``. A value that
+    already contains a dot (a full host, or a custom domain) is left as-is, only
+    lower-cased and stripped, since hostnames are case-insensitive.
+    """
+    if not instance:
+        return instance
+    inst = instance.strip().lower()
+    # Tolerate a pasted URL: keep only the host.
+    if "://" in inst:
+        inst = inst.split("://", 1)[1]
+    inst = inst.split("/", 1)[0]
+    if "." not in inst:
+        inst = inst + ".service-now.com"
+    return inst
+
 DEFAULTS = {
     # The ServiceNow SDK's copy-the-code page. Present on any instance with the
     # SDK installed. Override this if your OAuth client uses a different
@@ -67,5 +95,11 @@ def load_config(overrides=None):
     for key in KEYS:
         if isinstance(cfg.get(key), str):
             cfg[key] = cfg[key].strip()
+
+    # Canonicalise the instance to its FQDN so the short form and the full host
+    # resolve to one keychain entry. Done last, after all sources have been
+    # merged, so it applies regardless of where the instance came from.
+    if cfg.get("instance"):
+        cfg["instance"] = canonical_instance(cfg["instance"])
 
     return cfg

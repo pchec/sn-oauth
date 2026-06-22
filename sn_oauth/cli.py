@@ -99,20 +99,33 @@ def cmd_token(cfg, args):
     _require(cfg, "instance", "client_id")
     record = store.load_tokens(cfg["instance"])
     if not record:
-        _err("not logged in for %s; run 'sn-oauth login'." % cfg["instance"])
+        # No stored tokens at all. This is NOT a lapsed refresh token; it means
+        # nothing was ever stored for this instance (a genuine first-time login,
+        # or a logout). The instance is already canonicalised to its FQDN, so
+        # the old short-form/FQDN mismatch can no longer cause this. Say plainly
+        # which case this is, so it is never misread as a refresh failure.
+        _err("no stored tokens for %s (never logged in here, or logged out). "
+             "This is not a lapsed session; run 'sn-oauth login' once to "
+             "authorize this instance." % cfg["instance"])
         sys.exit(3)
     if record.get("access_token") and record.get("expires_at", 0) > time.time() + 60:
         print(record["access_token"])
         return
     if not record.get("refresh_token"):
-        _err("access token expired and no refresh token; run 'sn-oauth login'.")
+        _err("access token expired and the stored record has no refresh token; "
+             "run 'sn-oauth login' to re-authorize %s." % cfg["instance"])
         sys.exit(3)
     try:
         record = oauth.refresh(cfg["instance"], cfg["client_id"],
                                record["refresh_token"])
     except oauth.OAuthError as exc:
-        _err("refresh failed: %s" % exc)
-        _err("run 'sn-oauth login' to re-authorize.")
+        # The refresh ENDPOINT rejected the stored token. This is the one real
+        # lapse: the refresh token is gone or aged out past its lifespan. Only
+        # here is a fresh browser login genuinely required.
+        _err("refresh endpoint rejected the stored refresh token for %s: %s"
+             % (cfg["instance"], exc))
+        _err("this is a real lapse (refresh token expired or revoked); "
+             "run 'sn-oauth login' to re-authorize.")
         sys.exit(3)
     store.save_tokens(cfg["instance"], record)
     print(record["access_token"])
@@ -126,7 +139,8 @@ def cmd_status(cfg, args):
         return
     record = store.load_tokens(cfg["instance"])
     if not record:
-        print("status: not logged in")
+        print("status: no stored tokens (never logged in here, or logged out)")
+        print("note: not a lapse; run 'sn-oauth login' to authorize this instance")
         return
     valid = record.get("expires_at", 0) > time.time()
     print("status: logged in")

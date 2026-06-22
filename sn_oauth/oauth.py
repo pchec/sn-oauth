@@ -90,8 +90,16 @@ def exchange_code(instance, client_id, redirect_uri, code, verifier):
 
 
 def refresh(instance, client_id, refresh_token):
-    return _to_record(_post_token(instance, {
+    record = _to_record(_post_token(instance, {
         "grant_type": "refresh_token",
         "client_id": client_id,
         "refresh_token": refresh_token,
     }))
+    # Rotation safety: if the refresh response omits a new refresh_token (some
+    # OAuth providers only return one on rotation, or not at all), keep the one
+    # we just used. Without this, the saved record's refresh_token becomes None
+    # and the next refresh has nothing to present, manufacturing a real lapse
+    # out of a perfectly good session.
+    if not record.get("refresh_token"):
+        record["refresh_token"] = refresh_token
+    return record

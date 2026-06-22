@@ -99,7 +99,10 @@ cp sn-oauth.example.json sn-oauth.json
 }
 ```
 
-- `instance`: host only, no `https://`.
+- `instance`: host only, no `https://`. The value is canonicalised to its FQDN
+  before use, so a short name (`acme`), the full host (`acme.service-now.com`),
+  and even a pasted URL all resolve to the **same** stored token. You cannot
+  split your session across two spellings of the same instance.
 - `client_id`: from the OAuth client you registered above.
 - `redirect_uri`: must match the client's Redirect URL. A path like
   `/sdk-oauth.do` is resolved against the instance.
